@@ -1,0 +1,38 @@
+&NAME    BSAMGET &OPTION,&ID,&DCB=,&TTR=
+         AIF   ('&OPTION' EQ 'DEFINE').DEFINE
+         AIF   ('&OPTION' EQ 'GET').GET
+         AIF   ('&OPTION' EQ 'READ').READ
+         AIF   ('&OPTION' EQ 'INIT').INIT
+         MNOTE (8,'BSAMGET - INVALID OPTION')
+         MEXIT
+.DEFINE  ANOP
+&ID.PARMS DS   0D
+&ID.DCB  DC    A(&DCB)                 A(DCB)
+&ID.BUFF DC    A(0)                    A(INPUT BUFFER)
+&ID.CURRENT DC A(0)                    A(CURRENT BUFFER POSITION)
+&ID.EOBUFF DC  A(0)                    A(END OF BUFFER)
+&ID.RECORD DC  A(0)                    A(RECORD READ)
+&ID.LRECL DC   F'0'                    L(RECORD READ)
+&ID.LBLK  DC   F'0'                    L(BLOCK READ)
+&ID.TTR   DC   A(0)                    A(TTR TO READ)
+&ID.EOL   EQU  *                       END OF LIST
+         MEXIT
+.GET     ANOP
+         LA    R1,=A(&ID.PARMS)
+         L     R15,=V(BSAMGET)
+         BASR  R14,R15
+         MEXIT
+.READ    ANOP
+         AIF   ('&TTR' NE '').READIT
+         MMNOTE (8,'BSAMGET - NO TTR SUPPLIED FOR A READ')
+         MEXIT
+.READIT  ANOP
+         LA    R1,&TTR
+         ST    R1,&ID.TTR
+         LA    R1,=A(&ID.PARMS)
+         L     R15,=V(BSAMGET)
+         BASR  R14,R15
+         MEXIT
+.INIT    ANOP
+         XC    &ID.CURRENT(&ID.EOL-&ID.CURRENT),&ID.CURRENT
+         MEND
